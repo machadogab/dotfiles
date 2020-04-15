@@ -1,7 +1,25 @@
 ;; -*- no-byte-compile: t; -*-
-;;; ~/.doom.d/packages.el
+;;; ~/dev/dotfiles/emacs/.doom.d/packages.el
 
-;;; Examples:
-;; (package! some-package)
-;; (package! another-package :recipe (:fetcher github :repo "username/repo"))
-;; (package! builtin-package :disable t)
+(package! async)
+(package! cider)
+(package! clj-refactor)
+(package! clojure-mode)
+(package! company)
+(package! company-box :recipe (:host github :repo "yyoncho/company-box" :branch "size"))
+(package! company-lsp)
+(package! dart-mode)
+(package! dart-server)
+(package! flutter)
+;; (package! flutter :recipe (:host github :repo "ericdallo/flutter.el" :branch "test-command"))
+(package! flycheck-clojure)
+(package! flycheck-clj-kondo :disable t)
+(package! hover :recipe (:host github :repo "ericdallo/hover.el" :branch "master"))
+(package! lsp-java)
+(package! lsp-mode)
+(package! lsp-ui)
+(package! lsp-treemacs)
+(package! nyan-mode)
+(package! scss-mode)
+(package! paredit)
+(package! parrot :recipe (:host github :repo "jnc-nj/parrot" :branch "master"))
