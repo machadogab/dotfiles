@@ -1,224 +1,155 @@
-;;; ~/.doom.d/config.el -*- lexical-binding: t; -*-
+;;; $DOOMDIR/config.el -*- lexical-binding: t; -*-
+
+;; Place your private configuration here! Remember, you do not need to run 'doom
+;; sync' after modifying this file!
+
+
+;; Some functionality uses this to identify you, e.g. GPG configuration, email
+;; clients, file templates and snippets. It is optional.
+(setq user-full-name "Gabriel Machado"
+      user-mail-address "pmachadogabriel@gmail.com")
+
+;; Doom exposes five (optional) variables for controlling fonts in Doom:
+;;
+;; - `doom-font' -- the primary font to use
+;; - `doom-variable-pitch-font' -- a non-monospace font (where applicable)
+;; - `doom-big-font' -- used for `doom-big-font-mode'; use this for
+;;   presentations or streaming.
+;; - `doom-unicode-font' -- for unicode glyphs
+;; - `doom-serif-font' -- for the `fixed-pitch-serif' face
+;;
+;; See 'C-h v doom-font' for documentation and more examples of what they
+;; accept. For example:
+;;
+;;(setq doom-font (font-spec :family "Fira Code" :size 12 :weight 'semi-light)
+;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
+;;
+;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
+;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
+;; refresh your font settings. If Emacs still can't find your font, it likely
+;; wasn't installed correctly. Font issues are rarely Doom issues!
+
+;; There are two ways to load a theme. Both assume the theme is installed and
+;; available. You can either set `doom-theme' or manually load a theme with the
+;; `load-theme' function. This is the default:
+(setq doom-theme 'doom-one)
+
+(setq doom-font (font-spec :family "Fira Code" :size 16 :weight 'regular))
+;; This determines the style of line numbers in effect. If set to `nil', line
+;; numbers are disabled. For relative line numbers, set this to `relative'.
+(setq display-line-numbers-type t)
+
+;; If you use `org' and don't want your org files in the default location below,
+;; change `org-directory'. It must be set before org loads!
+(setq org-directory "~/org/")
+
+;; Whenever you reconfigure a package, make sure to wrap your config in an
+;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
+;;
+;;   (after! PACKAGE
+;;     (setq x y))
+;;
+;; The exceptions to this rule:
+;;
+;;   - Setting file/directory variables (like `org-directory')
+;;   - Setting variables which explicitly tell you to set them before their
+;;     package is loaded (see 'C-h v VARIABLE' to look up their documentation).
+;;   - Setting doom variables (which start with 'doom-' or '+').
+;;
+;; Here are some additional functions/macros that will help you configure Doom.
+;;
+;; - `load!' for loading external *.el files relative to this one
+;; - `use-package!' for configuring packages
+;; - `after!' for running code after a package has loaded
+;; - `add-load-path!' for adding directories to the `load-path', relative to
+;;   this file. Emacs searches the `load-path' when you load packages with
+;;   `require' or `use-package'.
+;; - `map!' for binding new keys
+;;
+;; To get information about any of these functions/macros, move the cursor over
+;; the highlighted symbol at press 'K' (non-evil users must press 'C-c c k').
+;; This will open documentation for it, including demos of how they are used.
+;; Alternatively, use `C-h o' to look up a symbol (functions, variables, faces,
+;; etc).
+;;
+;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
+;; they are implemented.
+
+(setq read-process-output-max (* 1024 1024)
+      doom-localleader-key "," ;; easier than <SPC m>
+      ;; doom-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 18) ;; Make sure to use a font you have installed
+      ;; doom-theme 'doom-dracula
+      projectile-project-search-path '("~/dev/nu")
+      projectile-enable-caching nil)
+
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+(use-package! lsp-mode
+  :commands lsp
+  :config
+  (setq lsp-semantic-tokens-enable t)
+  (add-hook 'lsp-after-apply-edits-hook (lambda (&rest _) (save-buffer)))) ;; save buffers after renaming
 
 (let ((nudev-emacs-path "~/dev/nu/nudev/ides/emacs/"))
   (when (file-directory-p nudev-emacs-path)
     (add-to-list 'load-path nudev-emacs-path)
-    (require 'nu)))
+    (require 'nu nil t)))
 
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-(add-to-list 'auto-mode-alist '("\\.repl\\'" . clojure-mode))
-(add-to-list 'auto-mode-alist '("\\.ect\\'" . html-mode))
-(add-hook 'html-mode-hook #'turn-off-auto-fill)
+(map! :after clojure-mode
+             :map clojure-mode-map
+             :localleader
 
-(defadvice find-file (before make-directory-maybe (filename &optional wildcards) activate)
-  "Create parent directory if not exists while visiting file."
-  (unless (file-exists-p filename)
-    (let ((dir (file-name-directory filename)))
-      (unless (file-exists-p dir)
-        (make-directory dir t)))))
-
-(defun open-dotfiles ()
-  "Browse the files in $DOTFILES_DIR"
-  (interactive)
-  (doom-project-browse (expand-file-name "~/.dotfiles")))
-
-(defun find-in-dotfiles ()
-  "Open a file somewhere in $DOTFILES_DIR via a fuzzy filename search."
-  (interactive)
-  (doom-project-find-file (expand-file-name "~/.dotfiles")))
-
-(defun reverse-transpose-sexps (arg)
-    (interactive "*p")
-    (transpose-sexps (- arg))
-    (backward-sexp (1+ arg))
-    (forward-sexp 1))
-
-(defun rg-ignoring-folders (folders)
-  "ripgrep selected word in project excluding folder"
-  (let ((symbol (thing-at-point 'symbol t))
-        (args (mapconcat 'identity
-                         (mapcar #'(lambda(folder) (concat "-g '!" folder "/*'"))
-                                 folders)
-                         " ")))
-    (counsel-rg symbol (counsel--git-root) args)))
-
-(setq-default evil-kill-on-visual-paste nil)
-
-(setq
- doom-theme 'doom-molokai
- history-length 100
- indent-tabs-mode nil
- confirm-kill-emacs nil ;; disable confirmation message on exit
- mode-line-default-help-echo nil ;; disable mouse help
- mode-line-format (list
-                  '(:eval (list (nyan-create))))
- show-help-function nil
- evil-multiedit-smart-match-boundaries nil
-
- projectile-project-search-path '("~/dev/")
-
- evil-split-window-below t
- evil-vsplit-window-right t
-
- counsel-rg-base-command "rg -i -M 1000 --no-heading --line-number --color never %s ."
-
- frame-title-format (setq icon-title-format  ;; set window title with "[project] filename"
-                          '(""
-                            (:eval
-                             (format "%s - " (projectile-project-name)))
-                            "%b"))
-
- doom-font (font-spec :family "Fira Code" :size 18)
- doom-big-font-increment 2
- evil-collection-setup-minibuffer t ;; enable minibuffer to work correctly in evil mode
-)
-
-(use-package! clj-refactor
-  :after clojure-mode
-  :config
-  (setq cljr-warn-on-eval nil
-        clojure-thread-all-but-last t
-        cljr-clojure-test-declaration "[midje.sweet :refer :all]"
-        cljr-magic-require-namespaces
-        '(("s"   . "schema.core")
-          ("th"  . "common-core.test-helpers")
-          ("gen" . "common-test.generators")
-          ("d-pro" . "common-datomic.protocols.datomic")
-          ("ex" . "common-core.exceptions")
-          ("dth" . "common-datomic.test-helpers")
-          ("t-money" . "common-core.types.money")
-          ("d" . "datomic.api")
-          ("pp" . "clojure.pprint")
-          ("init" . "postmanaux.init"))))
-
-(use-package! clojure-mode
-  :config
-  (define-clojure-indent
-    (fact 1)
-    (facts 1)
-    (flow 1)
-    (fnk 1)
-    (provided 1)
-    (clojure.test.check/quick-check 2)
-    (clojure.test.check.properties/for-all 2)
-    (common-datomic.test-helpers/let-entities 2))
-
-  (setq cider-show-error-buffer 'only-in-repl
-        clj-refactor-mode 1
-        yas-minor-mode 1) ; for adding require/use/import statements
-  (cljr-add-keybindings-with-prefix "C-c C-c")
-  (set-popup-rule! "^\\*cider-repl" :side 'right :width 0.5))
-
-(use-package! company
-  :config
-  (setq company-minimum-prefix-length 3
-        company-tooltip-align-annotations t
-        company-show-numbers t
-        company-dabbrev-downcase t))
-
-(use-package! company-box
-  :hook (company-mode . company-box-mode)
-  :config
-  ;; Fix <prior>/<next> on company-box
-  (advice-add 'company-next-page :after #'company-box--change-line)
-  (advice-add 'company-previous-page :after #'company-box--change-line)
-  (advice-add 'company-search-candidates :after #'company-box--change-line)
-  (advice-add 'company-filter-candidates :after #'company-box--change-line)
-  (advice-add 'company-search-repeat-forward :after #'company-box--change-line)
-  (advice-add 'company-search-repeat-backward :after #'company-box--change-line))
-
-(use-package! company-lsp
-  :commands company-lsp
-  :config
-  (setq company-lsp-async t
-        company-lsp-cache-candidates t
-        company-lsp-filter-candidates t))
-
-(use-package! dart-mode
-  :init
-  (setq dart-sdk-path "~/flutter/bin/cache/dark-sdk/"
-        lsp-dart-analysis-sdk "~/flutter/bin/cache/dart-sdk/"
-        lsp-auto-guess-root t
-        dart-format-on-save t))
-
-(use-package! dart-server
-  :hook ((dart-mode . dart-server)))
-
-(use-package! flutter
-  :after dart-mode
-  :config
-  (setq
-   flutter-sdk-path (concat (getenv "HOME") "/flutter"))
-  (set-popup-rule! "\\*compilation\\*" :side 'right :width 0.5))
-
-(use-package! hover
-  :after dart-mode)
-
-(use-package! lsp-java
-  :after java-mode
-  :config
-  (setq lsp-java-workspace-cache-dir t
-        lsp-java-format-enabled t
-        lsp-java-format-comments-enabled t
-        lsp-java-save-action-organize-imports t
-        lsp-java-save-action-organize-imports t
-        lsp-java-import-gradle-enabled t
-        lsp-java-import-maven-enabled t
-        lsp-java-auto-build t
-        lsp-java-progress-report t
-        lsp-java-completion-guess-arguments t
-        lsp-java-enable-file-watch t
-        lsp-file-watch-ignored
-        '(".idea" ".ensime_cache" ".eunit" "node_modules"
-          ".git" ".hg" ".fslckout" "_FOSSIL_"
-          ".bzr" "_darcs" ".tox" ".svn" ".stack-work"
-          "build")))
-
-(use-package! lsp-mode
-  :hook ((clojure-mode . lsp)
-         (dart-mode . lsp)
-         (java-mode . lsp))
-  :commands lsp
-  :init
-  (setq lsp-enable-indentation nil
-        lsp-diagnostic-package nil
-        lsp-log-io nil)
-  :custom
-  ((lsp-clojure-server-command '("bash" "-c" "/Users/gabriel.pinto/dev/clojure-lsp")))
-
-  :config
-  (dolist (m '(clojure-mode
-               clojurec-mode
-               clojurescript-mode
-               clojurex-mode))
-    (add-to-list 'lsp-language-id-configuration `(,m . "clojure")))
-  (advice-add #'lsp-rename :after (lambda (&rest _) (projectile-save-project-buffers))))
-
-(use-package lsp-treemacs
-  :after lsp-mode
-  :config
-  (lsp-treemacs-sync-mode 1))
-
-(use-package! lsp-ui
-  :after lsp-mode
-  :commands lsp-ui-mode
-  :config
-  (setq lsp-ui-peek-enable nil
-        lsp-ui-peek-list-width 60
-        lsp-ui-peek-fontify 'always
-        lsp-ui-peek-always-show nil))
+             :desc "Cider jack in CLJ"
+                   "s" #'cider-jack-in-clj)
 
 (use-package! paredit
   :hook ((clojure-mode . paredit-mode)
          (emacs-lisp-mode . paredit-mode)))
 
-(use-package! parrot
-  :config
-  (setq parrot-keep-partying t)
-  (parrot-mode))
+;; Fell free to move this to a bindings file you load from config.el
+(after! paredit
+  (define-key paredit-mode-map (kbd "C-<left>") nil)
+  (define-key paredit-mode-map (kbd "C-<right>") nil)
 
-(after! projectile
-  (add-to-list 'projectile-project-root-files-bottom-up "pubspec.yaml")
-  (add-to-list 'projectile-project-root-files-bottom-up "BUILD"))
+  (map! :nvi
 
-(load! "+bindings")
+        :desc "Forward barf"
+        "M-<left>" #'paredit-forward-barf-sexp
+
+        :desc "Forward slurp"
+        "M-<right>" #'paredit-forward-slurp-sexp
+
+        :desc "Backward slurp"
+        "M-S-<left>" #'paredit-backward-slurp-sexp
+
+        :desc "Backward barf"
+        "M-S-<right>" #'paredit-backward-barf-sexp
+
+        :desc "Backward"
+        "C-c <left>" #'paredit-backward
+
+        :desc "Forward"
+        "C-c <right>" #'paredit-forward))
+
+(map! :nvi
+
+      :desc "Toggle buffer full screen"
+      "<f10>" #'doom/window-maximize-buffer
+
+      :desc "increase window width"
+      "C-S-<right>" (lambda () (interactive) (enlarge-window 10 t))
+
+      :desc "decrease window width"
+      "C-S-<left>" (lambda () (interactive) (enlarge-window -10 t))
+
+      :desc "increase window height"
+      "C-S-<up>" (lambda () (interactive) (enlarge-window 10))
+
+      :desc "decrease window height"
+      "C-S-<down>" (lambda () (interactive) (enlarge-window -10))
+
+      :desc "Expand region"
+      "M-=" #'er/expand-region
+
+      :desc "Reverse expand region"
+      "M--" (lambda () (interactive) (er/expand-region -1)))
