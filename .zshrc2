@@ -1,0 +1,50 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+plugins=(git)
+
+source /usr/local/opt/powerlevel10k/powerlevel10k.zsh-theme
+ZSH_THEME="powerlevel10k/powerlevel10k"
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+export GPG_TTY=$(tty)
+
+export NU_HOME="${HOME}/dev/nu"
+export NUCLI_HOME="${NU_HOME}/nucli"
+export PATH="${NUCLI_HOME}:${PATH}:/$HOME/.emacs.d/bin/:Users/gabriel.pinto/dev/nu/platform-tools"
+
+alias gst='git status'
+alias gl='git pull'
+alias gp='git push'
+alias gd='git diff | mate'
+alias gau='git add --update'
+alias gc='git commit -v'
+alias gca='git commit -v -a'
+alias gb='git branch'
+alias gba='git branch -a'
+alias gco='git checkout'
+alias gcob='git checkout -b'
+alias gcot='git checkout -t'
+alias gcotb='git checkout --track -b'
+alias glog='git log'
+alias glogp='git log --pretty=format:"%h %s" --graph'
+
+# {mark} START IT-ENG JAMF SETUP MOBILE ZSHRC
+export MONOREPO_ROOT="$NU_HOME/mini-meta-repo"
+export PATH="$PATH:$MONOREPO_ROOT/monocli/bin"
+export FLUTTER_SDK_HOME="$HOME/sdk-flutter"
+export FLUTTER_ROOT="$FLUTTER_SDK_HOME"
+export PATH="$PATH:$FLUTTER_SDK_HOME/bin:$NU_HOME/.pub-cache/bin:$FLUTTER_ROOT/bin/cache/dart-sdk/bin"
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export ANDROID_SDK="$ANDROID_HOME"
+export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator"
+# {mark} END IT-ENG JAMF SETUP MOBILE ZSHRC
+
+
+export PATH="/usr/local/opt/openjdk@11/bin:$PATH"
