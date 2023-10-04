@@ -49,4 +49,10 @@
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
 
-(package! treemacs-all-the-icons)
+(package! ligature)
+(package! paredit)
+
+(package! eglot)
+
+;; (package! copilot
+;;   :recipe (:host github :repo "zerolfx/copilot.el" :files ("*.el" "dist")))

@@ -32,7 +32,7 @@
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-one)
+;;(setq doom-theme 'doom-one)
 
 (setq doom-font (font-spec :family "Fira Code" :size 16 :weight 'regular))
 ;; This determines the style of line numbers in effect. If set to `nil', line
@@ -75,32 +75,46 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
+;; General configs
+;; Enable the www ligature in every possible major mode
+(ligature-set-ligatures 't '("www"))
+
+;; Enable ligatures in programming modes
+(ligature-set-ligatures 'prog-mode '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "::"
+                                     ":::" ":=" "!!" "!=" "!==" "-}" "----" "-->" "->" "->>"
+                                     "-<" "-<<" "-~" "#{" "#[" "##" "###" "####" "#(" "#?" "#_"
+                                     "#_(" ".-" ".=" ".." "..<" "..." "?=" "??" ";;" "/*" "/**"
+                                     "/=" "/==" "/>" "//" "///" "&&" "||" "||=" "|=" "|>" "^=" "$>"
+                                     "++" "+++" "+>" "=:=" "==" "===" "==>" "=>" "=>>" "<="
+                                     "=<<" "=/=" ">-" ">=" ">=>" ">>" ">>-" ">>=" ">>>" "<*"
+                                     "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-" "<--" "<->" "<+"
+                                     "<+>" "<=" "<==" "<=>" "<=<" "<>" "<<" "<<-" "<<=" "<<<"
+                                     "<~" "<~~" "</" "</>" "~@" "~-" "~>" "~~" "~~>" "%%"))
+
+(global-ligature-mode t)
+
 (setq read-process-output-max (* 1024 1024)
       doom-localleader-key "," ;; easier than <SPC m>
       ;; doom-font (font-spec :family "JetBrainsMono Nerd Font Mono" :size 18) ;; Make sure to use a font you have installed
       ;; doom-theme 'doom-dracula
-      projectile-project-search-path '("~/dev/nu")
+      projectile-project-search-path '("~/dev/liveflow")
       projectile-enable-caching nil)
 
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
-(use-package! lsp-mode
-  :commands lsp
-  :config
-  (setq lsp-semantic-tokens-enable t)
-  (add-hook 'lsp-after-apply-edits-hook (lambda (&rest _) (save-buffer)))) ;; save buffers after renaming
+(add-hook 'before-save-hook #'eglot-format-buffer nil t)
 
-(let ((nudev-emacs-path "~/dev/nu/nudev/ides/emacs/"))
-  (when (file-directory-p nudev-emacs-path)
-    (add-to-list 'load-path nudev-emacs-path)
-    (require 'nu nil t)))
 
+
+
+
+;; Clojure
 (map! :after clojure-mode
-             :map clojure-mode-map
-             :localleader
+      :map clojure-mode-map
+      :localleader
 
-             :desc "Cider jack in CLJ"
-                   "s" #'cider-jack-in-clj)
+      :desc "Cider jack in CLJ"
+      "s" #'cider-jack-in-clj)
 
 (use-package! paredit
   :hook ((clojure-mode . paredit-mode)
@@ -153,3 +167,34 @@
 
       :desc "Reverse expand region"
       "M--" (lambda () (interactive) (er/expand-region -1)))
+
+;; Elixir
+(with-eval-after-load 'eglot
+  (setf (alist-get '(elixir-mode elixir-ts-mode heex-ts-mode)
+                   eglot-server-programs
+                   nil nil #'equal)
+        (if (and (fboundp 'w32-shell-dos-semantics)
+                 (w32-shell-dos-semantics))
+            '("language_server.bat")
+          (eglot-alternatives
+           '("language_server.sh" "start_lexical.sh")))))
+
+(setq explicit-zsh-args '("--login" "--interactive"))
+(defun zsh-shell-mode-setup ()
+  (setq-local comint-process-echoes t))
+
+(add-hook 'elixir-mode-hook 'eglot-ensure)
+
+(add-hook 'shell-mode-hook #'zsh-shell-mode-setup)
+
+(setq +format-on-save-enabled-modes '(elixir-mode))
+
+;; Github Copilot
+;; accept completion from copilot and fallback to company
+;; (use-package! copilot
+;;   :hook (prog-mode . copilot-mode)
+;;   :bind (:map copilot-completion-map
+;;               ("<tab>" . 'copilot-accept-completion)
+;;               ("TAB" . 'copilot-accept-completion)
+;;               ("C-TAB" . 'copilot-accept-completion-by-word)
+;;               ("C-<tab>" . 'copilot-accept-completion-by-word)))
