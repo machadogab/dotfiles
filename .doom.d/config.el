@@ -34,7 +34,7 @@
 ;; `load-theme' function. This is the default:
 ;;(setq doom-theme 'doom-one)
 
-(setq doom-font (font-spec :family "Fira Code" :size 16 :weight 'regular))
+(setq doom-font (font-spec :family "Fira Code" :size 22 :weight 'regular))
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
@@ -99,14 +99,6 @@
       ;; doom-theme 'doom-dracula
       projectile-project-search-path '("~/dev/liveflow")
       projectile-enable-caching nil)
-
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-
-(add-hook 'before-save-hook #'eglot-format-buffer nil t)
-
-
-
-
 
 ;; Clojure
 (map! :after clojure-mode
@@ -180,21 +172,40 @@
            '("language_server.sh" "start_lexical.sh")))))
 
 (setq explicit-zsh-args '("--login" "--interactive"))
+
 (defun zsh-shell-mode-setup ()
   (setq-local comint-process-echoes t))
 
 (add-hook 'elixir-mode-hook 'eglot-ensure)
-
 (add-hook 'shell-mode-hook #'zsh-shell-mode-setup)
+(add-hook 'elixir-mode-hook 'flycheck-mode)
 
-(setq +format-on-save-enabled-modes '(elixir-mode))
+(with-eval-after-load 'flycheck
+  '(flycheck-credo-setup))
+
+;; (use-package! alchemist
+;;   :hook (elixir-mode . alchemist-mode)
+;;   :config
+;;   (set-eval-handler! 'elixir-mode #'alchemist-eval-region)
+;;   (set-repl-handler! 'elixir-mode #'alchemist-iex-project-run)
+;;   (setq alchemist-mix-env "dev")
+;;   (map! :map elixir-mode-map :nv "m" alchemist-mode-keymap))
+
+(use-package! lsp-mode
+  :commands lsp
+  :config
+  (setq lsp-enable-file-watchers nil)
+  :hook
+  (elixir-mode . lsp))
 
 ;; Github Copilot
 ;; accept completion from copilot and fallback to company
-;; (use-package! copilot
-;;   :hook (prog-mode . copilot-mode)
-;;   :bind (:map copilot-completion-map
-;;               ("<tab>" . 'copilot-accept-completion)
-;;               ("TAB" . 'copilot-accept-completion)
-;;               ("C-TAB" . 'copilot-accept-completion-by-word)
-;;               ("C-<tab>" . 'copilot-accept-completion-by-word)))
+(use-package! copilot
+  :hook (prog-mode . copilot-mode)
+  :bind (:map copilot-completion-map
+              ("<tab>" . 'copilot-accept-completion)
+              ("TAB" . 'copilot-accept-completion)
+              ("C-TAB" . 'copilot-accept-completion-by-word)
+              ("C-<tab>" . 'copilot-accept-completion-by-word)))
+
+(use-package! lsp-tailwindcss)
